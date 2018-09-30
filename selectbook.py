@@ -58,7 +58,6 @@ def judgeDetail(html):
             dict1['writerIntroduce'] = soup.find(class_='indent ').find(class_='intro').text.replace('\n', '').replace(' ', '')#作者介绍
         except:dict1['writerIntroduce'] = ''
         return dict1
-    # except:print ('no detail')
 
 def judgeCommonts(html):
     soup = BeautifulSoup(html, 'lxml')
@@ -74,7 +73,6 @@ def judgeCommonts(html):
         s3 = str(i.find(class_='short').text)
         string += s3+'///'
     return string
-
 
 def judgeDouban(html):
     global title
@@ -98,26 +96,21 @@ def judgeDouban(html):
             dict1['title'] = title
             dict1['source'] = source
             dict1['url'] = url
-            print(dict1)
+            # print(dict1)
             time.sleep(5)
             return dict1
         except :
-            print('nofound')
             return None
-            continue
 
 
 def getBookname():
     db = pymysql.connect("localhost", "root", "123456", "mydata")
     cursor = db.cursor()
-    # cursor.execute(sql_insert,dict1)
     cursor.execute("select name from booklist")
-    # cur.execute("select ip,proxy from proxy_ip1_text")
     results = cursor.fetchall()
     new = []
     for row in results:
         new.append(row[0])
-        # print new
     new = list(set(new))
     cursor.close()
     db.commit()
@@ -147,26 +140,30 @@ global source
 if __name__ == '__main__':
     global url
     source = ['国家地理','华尔街日报', '经济学人', '时代周刊', '华盛顿邮报', '星期日泰晤士报','纽约时报','卫报','泰晤士报','译文经典系列14本','译文名著文库8本','知乎「盐」系列','上海译文出版社-译文名著精选系列75本']
-    url_list = ['https://mp.weixin.qq.com/s?__biz=MzAwOTEzMTkzNw==&mid=2663324136&idx=1&sn=aa0939c713df885f9ae4886cda3d48dc&chksm=802ffb26b758723096b0fba169c222b4553d7da4878536bdb744b4fc9f51fc06e9887ebfd67d&mpshare=1&scene=1&srcid=0920t9GwvIHs7qc0MfNdd8sK#rd']
+    url_list = ['https://mp.weixin.qq.com/s?__biz=MzAwNTczMzcxMA==&mid=2655440461&idx=1&sn=ad27b942f4d92ae2c8bac8ed6b4fba97&chksm=80aa426cb7ddcb7ab55a252f74f7c76e2bd90a21dc8b9519f041731cb8283393559779acb395&mpshare=1&scene=1&srcid=0930bZdXyDXEL3fAXFjsrMFu#rd','https://mp.weixin.qq.com/s?__biz=MzAwNTczMzcxMA==&mid=2655440321&idx=1&sn=286eb20b4decd1782325e39f54d3f2ca&chksm=80aa41e0b7ddc8f68896ba0fcc3a9028ba748551df9b1da7fb3e2dfd07436a078a0700cedeff&scene=0#rd','https://mp.weixin.qq.com/s?__biz=MzAwNTczMzcxMA==&mid=2655440477&idx=1&sn=df1162e16b7a5343350f513e3323071a&chksm=80aa427cb7ddcb6a2706687e1d81e9cc519b4c1f603114aa6b25fe9aedbf1a08554b46f7f568&scene=0#rd']
     print(source)
     while url_list:
         dbBooklist = getBookname()
         url = url_list.pop()
         # print(url)
         bookList = judgepage(getpage(url))
-        for item in bookList:
-            item = "".join(item).replace(' ','')
-            # print('item',item)
+        # for item in bookList:
+        while bookList:
+            item = "".join(bookList.pop()).replace(' ','')
+            print('last:',len(bookList))
             if item not in dbBooklist and item not in source:
-            # if item  in source:
                 print(item)
                 url_douban = 'https://www.douban.com/search?cat=1001&q='+ str(item)
-                # print(url_douban)
-                if judgeDouban(getpage(url_douban)) != None:
-                    dict1 = judgeDouban(getpage(url_douban))
-                    sql(dict1)
-                    print("###########")
-                else:continue
+                info_detail = judgeDouban(getpage(url_douban))
+                if info_detail != None :
+                    if info_detail['name'] not in dbBooklist:
+                        sql(info_detail)
+                        print(info_detail)
+                        print('################')
+                    else:
+                        print(info_detail['name']  ,'in db')
+                else:
+                    print('no found')
             else:
                 print('in db', item)
         print('------------------')

@@ -103,6 +103,7 @@ def judgeDouban(html):
             return dict1
         except :
             print('nofound')
+            return None
             continue
 
 
@@ -133,9 +134,11 @@ def judgepage(html):
     result1 = re.findall(pattern, soup.text.encode('GBK', 'ignore').decode('GBk'))
     l1 = []
     for item in result1:
-        l1.append(item.replace('/n', ''))
-    l1 =list(set(l1))
-    print(l1)
+        if item not in l1:
+            l1.append("".join(item.replace('/n', '').replace(' ','')))
+        # l1.append(item.replace('/n', ''))
+    # l1 =list(set(l1))
+    # print(l1)
     return l1
 
 global url
@@ -143,22 +146,29 @@ global title
 global source
 if __name__ == '__main__':
     global url
-    url_list = ['https://mp.weixin.qq.com/s?__biz=MzAwNTczMzcxMA==&mid=2655439638&idx=1&sn=89b7d8f2acb8fa337ad61b2a2bbecd2e&chksm=80aa4737b7ddce21291185be834ee606113868c4692811b74357ac2ea5e3f9d669b192dc7688&scene=0#rd','https://mp.weixin.qq.com/s?__biz=MzAwNTczMzcxMA==&mid=2655439657&idx=1&sn=0e09411ddf1f2149ed558379b7209e51&chksm=80aa4708b7ddce1eef41fb3260ea621dc248ee1d347bb08e66a14786483b55ef97b2e1d39387&scene=0#rd','https://mp.weixin.qq.com/s?__biz=MzAwNTczMzcxMA==&mid=2655439745&idx=1&sn=3fda81dbb8bd4b2c54191ba7cd9dbf92&chksm=80aa47a0b7ddceb68d6294de1efc46dcd62a6011eb3915379e80ba22a46d6f8f26f469be8714&scene=0#rd','https://mp.weixin.qq.com/s?__biz=MzAwNTczMzcxMA==&mid=2655439760&idx=1&sn=3d797fbdbc387a604a36c614ded191eb&chksm=80aa47b1b7ddcea7d116a49dfb6caa3455145e899c3ecd535cca45e2bcb4482364d9335eb095&scene=0#rd','https://mp.weixin.qq.com/s?__biz=MzAwNTczMzcxMA==&mid=2655439802&idx=1&sn=f471fa6c3b8f3ce7a40e1865bfffac4b&chksm=80aa479bb7ddce8d4b16d1fd71c33d65ad1eb574339b577be2b556135fbcd4d1979e43586c81&scene=0#rd','https://mp.weixin.qq.com/s?__biz=MzAwNTczMzcxMA==&mid=2655439868&idx=1&sn=804711095ebf7334689b22212ca969bc&chksm=80aa47ddb7ddcecb2899b9d39dc2e227bcdeb00fab7ca49fd7e7bd768c5ac58418157601bee7&scene=0#rd','https://mp.weixin.qq.com/s?__biz=MzAwNTczMzcxMA==&mid=2655439945&idx=1&sn=b6c9359ae761303e35452780a66369f5&chksm=80aa4068b7ddc97e7367671880c1a1b0116140c9530c7625f1d0e7bb42cbecae3ae0606753bb&scene=0#rd']
+    source = ['国家地理','华尔街日报', '经济学人', '时代周刊', '华盛顿邮报', '星期日泰晤士报','纽约时报','卫报','泰晤士报','译文经典系列14本','译文名著文库8本','知乎「盐」系列','上海译文出版社-译文名著精选系列75本']
+    url_list = ['https://mp.weixin.qq.com/s?__biz=MzAwOTEzMTkzNw==&mid=2663324136&idx=1&sn=aa0939c713df885f9ae4886cda3d48dc&chksm=802ffb26b758723096b0fba169c222b4553d7da4878536bdb744b4fc9f51fc06e9887ebfd67d&mpshare=1&scene=1&srcid=0920t9GwvIHs7qc0MfNdd8sK#rd']
+    print(source)
     while url_list:
         dbBooklist = getBookname()
         url = url_list.pop()
-        print(url)
+        # print(url)
         bookList = judgepage(getpage(url))
-
         for item in bookList:
+            item = "".join(item).replace(' ','')
+            # print('item',item)
+            if item not in dbBooklist and item not in source:
+            # if item  in source:
+                print(item)
                 url_douban = 'https://www.douban.com/search?cat=1001&q='+ str(item)
-                print(url_douban)
-                if item not in dbBooklist:
+                # print(url_douban)
+                if judgeDouban(getpage(url_douban)) != None:
                     dict1 = judgeDouban(getpage(url_douban))
                     sql(dict1)
                     print("###########")
-                else:
-                    print('in db', item)
+                else:continue
+            else:
+                print('in db', item)
         print('------------------')
 
 # sql_insert = "insert into booklist(name) values(%(name)s)"
@@ -166,3 +176,4 @@ if __name__ == '__main__':
 # (getpage(url_Detaildouban))
 # url_comments = 'https://book.douban.com/subject/3879026/comments/'
 # getpage(url_comments)
+
